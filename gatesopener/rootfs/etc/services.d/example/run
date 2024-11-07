@@ -15,10 +15,7 @@ base_url=$(bashio::config 'base_url')
 token=$(bashio::config 'token')
 key=$(bashio::config 'key')
 
-## Print the message the user supplied, defaults to "Hello World..."
 bashio::log.info "Starting gates opener server with ${base_url}"
 
-chmod +x /usr/bin/gates_opener
-
 ## Run your program
-# /usr/bin/gates_opener --token "${token}" --base_url "${base_url}" --internal-key "${key}"
+/usr/bin/gates_opener --token "${token}" --base_url "${base_url}" --internal-key "${key}"
