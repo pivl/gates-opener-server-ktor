@@ -7,5 +7,3 @@ labels:
   org.opencontainers.image.description: "Gates Opener Proxy"
   org.opencontainers.image.source: "https://github.com/pivl/gates-opener-server-ktor"
   org.opencontainers.image.licenses: "Apache License 2.0"
-args:
-  TEMPIO_VERSION: "2021.09.0"
