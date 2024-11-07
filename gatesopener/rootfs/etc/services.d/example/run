@@ -18,4 +18,4 @@ key=$(bashio::config 'key')
 bashio::log.info "Starting gates opener server with ${base_url}"
 
 ## Run your program
-/usr/bin/gates_opener --token "${token}" --base_url "${base_url}" --internal-key "${key}"
+/usr/bin/gates_opener --token "${token}" --base-url "${base_url}" --internal-key "${key}"
