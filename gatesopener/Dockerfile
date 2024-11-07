@@ -5,4 +5,4 @@ FROM $BUILD_FROM
 ARG BUILD_ARCH
 # Copy root filesystem
 COPY rootfs /
-COPY bin/gates-opener-server-ktor-${BUILD_ARCH} /usr/bin/gates-opener-server-ktor
+COPY bin/gates-opener-server-ktor /usr/bin/gates_opener

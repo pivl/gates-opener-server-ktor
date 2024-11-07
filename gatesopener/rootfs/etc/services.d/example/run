@@ -16,7 +16,7 @@ token=$(bashio::config 'token')
 key=$(bashio::config 'key')
 
 ## Print the message the user supplied, defaults to "Hello World..."
-bashio::log.info "Starting gates opener server"
+bashio::log.info "Starting gates opener server with ${base_url}"
 
 ## Run your program
-exec /usr/bin/gates-opener-server-ktor --token ${token} --base_url ${base_url} --internal-key ${key}
+exec /usr/bin/gates_opener --token ${token} --base_url ${base_url} --internal-key ${key}
