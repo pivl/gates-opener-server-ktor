@@ -1,0 +1,4 @@
+# https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
+name: Gates Opener Proxy add-on repository
+url: 'https://github.com/pivl/gates-opener-server-ktor'
+maintainer: Pavel Stasiuk <pivlyak@gmail.com>

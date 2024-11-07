@@ -1,0 +1,10 @@
+configuration:
+  key:
+    name: Internal key
+    description: Key for Internal API
+  base_url:
+    name: Base URL
+    description: Base URL for Internal API
+  token:
+    name: Token
+    description: Token that is used to access this api using header Authorization Bearer token

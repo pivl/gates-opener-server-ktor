@@ -1,0 +1,19 @@
+# https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
+name: Gates Opener Proxy
+version: "1.0.0"
+slug: gatesopener
+description: Gates Opener Proxy
+url: "https://github.com/pivl/gates-opener-server-ktor/tree/main/ha-addon"
+arch:
+  - aarch64
+  - amd64
+init: false
+options:
+  key: ""
+  token: "token"
+  base_url: "http://somehost/opener"
+schema:
+  key: "str"
+  token: "str"
+  base_url: "str"
+image: "ghcr.io/home-assistant/{arch}-addon-example"
