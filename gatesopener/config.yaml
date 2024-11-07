@@ -16,4 +16,6 @@ schema:
   key: "str"
   token: "str"
   base_url: "str"
+ports:
+  8080/tcp: 8080
 #image: "ghcr.io/home-assistant/{arch}-addon-example"
