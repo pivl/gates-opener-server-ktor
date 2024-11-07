@@ -11,12 +11,12 @@ declare base_url
 declare token
 declare key
 
-## Get the 'message' key from the user config options.
-message=$(bashio::config 'base_url')
-token=$(bashio::config '')
+base_url=$(bashio::config 'base_url')
+token=$(bashio::config 'token')
+key=$(bashio::config 'key')
 
 ## Print the message the user supplied, defaults to "Hello World..."
-bashio::log.info "${message:="Hello World..."}"
+bashio::log.info "Starting gates opener server"
 
 ## Run your program
-exec /usr/bin/my_program
+exec /usr/bin/gates-opener-server-ktor --token ${token} --base_url ${base_url} --internal-key ${key}

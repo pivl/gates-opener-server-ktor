@@ -66,7 +66,7 @@ tasks.register("linkLinuxBinaries") {
     dependsOn(linuxArm64LinkTask, linuxX64LinkTask)
 
     doLast {
-        val outputDir = file("$projectDir/build/output")
+        val outputDir = file("$projectDir/gatesopener/bin")
         outputDir.mkdirs()
 
         // Paths to the executables
