@@ -19,10 +19,6 @@ fun main(args: Array<String>) {
             --token S - authentication token to use this API
             --base-url S - host that handles requests internally
             --internal-key S - key that is passed to the host
-            Using default values:
-            token = ${configuration.token}
-            baseUrl = ${configuration.baseUrl}
-            internalKey = ${configuration.internalKey}
         """.trimIndent()
         )
     }
@@ -31,6 +27,12 @@ fun main(args: Array<String>) {
         baseUrl = arguments.baseUrl ?: configuration.baseUrl,
         internalKey = arguments.internalKey ?: configuration.internalKey,
     )
+    println("""
+Using this configuration:
+  token = ${configuration.token}
+  baseUrl = ${configuration.baseUrl}
+  internalKey = ${configuration.internalKey}
+""")
     embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
