@@ -1,11 +1,8 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
-ARG BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.20
+ARG BUILD_FROM=ghcr.io/home-assistant/aarch64-base-ubuntu:20.04
 FROM $BUILD_FROM
 
 ARG BUILD_ARCH=aarch64
-
-# install some deps
-RUN apk add --no-cache gcompat
 
 # Copy root filesystem
 COPY rootfs /
