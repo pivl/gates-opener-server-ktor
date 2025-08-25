@@ -1,5 +1,5 @@
 data class Arguments(
-    val token: String?,
-    val baseUrl: String?,
-    val internalKey: String?,
+    val apiToken: String?,
+    val initialToken: String?,
+    val deviceUuid: String?,
 )

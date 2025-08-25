@@ -45,6 +45,7 @@ kotlin {
             implementation(libs.ktor.client.cio)
             implementation(libs.ktor.server.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+            implementation("io.ktor:ktor-client-content-negotiation:3.0.1")
         }
 
         nativeTest.dependencies {
