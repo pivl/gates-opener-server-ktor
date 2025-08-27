@@ -19,7 +19,7 @@
 ```bash
 ./gates-opener-server-ktor \
   --api-token "my-secure-api-token" \
-  --initial-token "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..." \
+  --initial-token "initial-jwt-token" \
   --device-uuid "fe9883696cbc9018"
 ```
 
@@ -38,8 +38,8 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "doorphone_id": "3770",
-  "door_number": "2"
+  "doorphone_id": "xxxx",
+  "door_number": "x"
 }
 ```
 
@@ -72,22 +72,13 @@ Content-Type: application/json
 
 ## Примеры использования
 
-### Открыть подъезд №1 (doorphone_id: 3770, door: 2)
+### Открыть подъезд №1 (doorphone_id: xxxx, door: x)
 
 ```bash
 curl -X POST http://localhost:8080/open-door \
   -H "Authorization: Bearer YOUR_API_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"doorphone_id": "3770", "door_number": "2"}'
-```
-
-### Открыть ворота (doorphone_id: 3836, door: 2)
-
-```bash
-curl -X POST http://localhost:8080/open-door \
-  -H "Authorization: Bearer YOUR_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"doorphone_id": "3836", "door_number": "2"}'
+  -d '{"doorphone_id": "xxxx", "door_number": "x"}'
 ```
 
 ## Работа с токенами

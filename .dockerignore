@@ -1,0 +1,13 @@
+# Исключаем ненужные файлы из Docker контекста
+build/
+.gradle/
+.git/
+.vscode/
+*.log
+*.sh
+gatesopener/
+Dockerfile*
+BUILD_INSTRUCTIONS.md
+API_DOCS.md
+README.md
+repository.yaml

@@ -1,6 +1,6 @@
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -14,7 +14,7 @@ class TokenService(
     private val initialToken: String,
     private val deviceUuid: String = "fe9883696cbc9018"
 ) {
-    private val client = HttpClient(CIO) {
+    private val client = HttpClient(Curl) {
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -31,7 +31,8 @@ class TokenService(
     // Обновление первичного токена через refresh
     suspend fun refreshAuthToken(): Boolean = mutex.withLock {
         return try {
-            println("Refreshing auth token...")
+            println("🔄 TokenService: Refreshing auth token...")
+            println("🔗 TokenService: Making request to https://id.evo73.ru/auth/refresh")
             val response = client.post("https://id.evo73.ru/auth/refresh") {
                 headers {
                     append("X-Device-UUID", deviceUuid)
@@ -48,24 +49,30 @@ class TokenService(
                 // После обновления auth токена сбрасываем зависимые токены
                 mainToken = null
                 intercomToken = null
-                println("Auth token refreshed successfully")
+                println("✅ TokenService: Auth token refreshed successfully")
                 true
             } else {
-                println("Failed to refresh auth token: ${response.status}")
+                println("❌ TokenService: Failed to refresh auth token: ${response.status}")
+                println("📄 TokenService: Response body: ${response.bodyAsText()}")
                 false
             }
         } catch (e: Exception) {
-            println("Error refreshing auth token: ${e.message}")
+            println("❌ TokenService: Error refreshing auth token: ${e.message}")
+            e.printStackTrace()
             false
         }
     }
 
     // Получение main токена
     suspend fun getMainToken(): String? = mutex.withLock {
-        if (mainToken != null) return mainToken
+        if (mainToken != null) {
+            println("🔄 TokenService: Using cached main token")
+            return mainToken
+        }
 
         return try {
-            println("Getting main token...")
+            println("🔄 TokenService: Getting main token...")
+            println("🔗 TokenService: Making request to https://api.app.evo73.ru/api/v2/single-auth/main-token")
             val response = client.post("https://api.app.evo73.ru/api/v2/single-auth/main-token") {
                 headers {
                     append("X-Device-UUID", deviceUuid)
@@ -78,30 +85,40 @@ class TokenService(
             if (response.status == HttpStatusCode.OK) {
                 val tokenResponse = response.body<SingleAuthTokenDto>()
                 mainToken = tokenResponse.token
-                println("Main token obtained successfully")
+                println("✅ TokenService: Main token obtained successfully")
                 mainToken
             } else {
-                println("Failed to get main token: ${response.status}")
+                println("❌ TokenService: Failed to get main token: ${response.status}")
+                println("📄 TokenService: Response body: ${response.bodyAsText()}")
                 null
             }
         } catch (e: Exception) {
-            println("Error getting main token: ${e.message}")
+            println("❌ TokenService: Error getting main token: ${e.message}")
+            e.printStackTrace()
             null
         }
     }
 
     // Получение intercom токена
-    suspend fun getIntercomToken(): String? = mutex.withLock {
-        if (intercomToken != null) return intercomToken
+    suspend fun getIntercomToken(): String? {
+        // Сначала проверяем кеш под блокировкой
+        mutex.withLock {
+            if (intercomToken != null) {
+                println("🔄 TokenService: Using cached intercom token")
+                return intercomToken
+            }
+        }
 
-        val currentMainToken = mainToken ?: getMainToken()
+        // Получаем main token вне блокировки, чтобы избежать дедлока
+        val currentMainToken = mutex.withLock { mainToken } ?: getMainToken()
         if (currentMainToken == null) {
-            println("Cannot get intercom token: main token is null")
+            println("❌ TokenService: Cannot get intercom token: main token is null")
             return null
         }
 
         return try {
-            println("Getting intercom token...")
+            println("🔄 TokenService: Getting intercom token...")
+            println("🔗 TokenService: Making request to https://api.app.evo73.ru/api/v1/authIntercom")
             val response = client.post("https://api.app.evo73.ru/api/v1/authIntercom") {
                 headers {
                     append("X-Device-UUID", deviceUuid)
@@ -114,28 +131,39 @@ class TokenService(
 
             if (response.status == HttpStatusCode.OK) {
                 val tokenResponse = response.body<IntercomTokenDto>()
-                intercomToken = tokenResponse.token
-                println("Intercom token obtained successfully")
-                intercomToken
+                // Сохраняем токен под блокировкой
+                mutex.withLock {
+                    intercomToken = tokenResponse.token
+                }
+                println("✅ TokenService: Intercom token obtained successfully")
+                tokenResponse.token
             } else {
-                println("Failed to get intercom token: ${response.status}")
+                println("❌ TokenService: Failed to get intercom token: ${response.status}")
+                println("📄 TokenService: Response body: ${response.bodyAsText()}")
                 null
             }
         } catch (e: Exception) {
-            println("Error getting intercom token: ${e.message}")
+            println("❌ TokenService: Error getting intercom token: ${e.message}")
+            e.printStackTrace()
             null
         }
     }
 
     // Автоматическое обновление токенов при получении 401
     suspend fun getValidIntercomToken(): String? {
+        println("🔄 TokenService: Getting valid intercom token...")
         var token = getIntercomToken()
         if (token == null) {
+            println("⚠️ TokenService: Intercom token is null, trying to refresh auth token...")
             // Попытка обновить auth токен и получить новые токены
             if (refreshAuthToken()) {
+                println("🔄 TokenService: Auth token refreshed, getting new intercom token...")
                 token = getIntercomToken()
+            } else {
+                println("❌ TokenService: Failed to refresh auth token")
             }
         }
+        println("🎯 TokenService: Returning intercom token: ${if (token != null) "✅ Valid" else "❌ Null"}")
         return token
     }
 

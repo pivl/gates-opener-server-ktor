@@ -1,0 +1,30 @@
+# Dockerfile для сборки Linux ARM64 executable
+# Используем ARM64 базовый образ для кросс-компиляции
+
+FROM arm64v8/openjdk:17-jdk-slim
+
+# Устанавливаем необходимые зависимости для ARM64
+RUN apt-get update && apt-get install -y \
+    curl \
+    libcurl4-openssl-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Сначала копируем gradle wrapper и конфигурационные файлы
+COPY gradle/ gradle/
+COPY gradlew gradlew.bat gradle.properties settings.gradle.kts build.gradle.kts ./
+
+# Даем права на выполнение градла
+RUN chmod +x ./gradlew
+
+# Загружаем зависимости только для ARM64 (это будет закешировано Docker)
+RUN ./gradlew dependencies --no-daemon -Ddocker.build.arm64=true
+
+# Теперь копируем исходный код
+COPY src/ src/
+
+# Собираем проект только для ARM64 используя специальную задачу
+CMD ["./gradlew", "linkLinuxArm64Only", "--no-daemon", "-Ddocker.build.arm64=true"]

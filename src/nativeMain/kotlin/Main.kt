@@ -18,8 +18,8 @@ fun main(args: Array<String>) {
             """
             Consider providing arguments:
             --api-token S - authentication token for API access (used by external clients)
-            --initial-token S - initial token for obtaining system tokens (former internal-key)
-            --device-uuid S - device UUID (optional, defaults to fe9883696cbc9018)
+            --initial-token S - initial token for obtaining system tokens
+            --device-uuid S - device UUID (optional, defaults to fe9883696cbcffff)
         """.trimIndent()
         )
     }
@@ -48,7 +48,7 @@ var configuration = Configuration(
 --initial-token S - initial token for obtaining system tokens (former internal-key)
 --device-uuid S - device UUID (optional)
 for example run app with arguments:
-./gates-opener-server-ktor --api-token some-api-token --initial-token eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9... --device-uuid fe9883696cbc9018
+./gates-opener-server-ktor --api-token some-api-token --initial-token eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9... --device-uuid fe9883696cbcffff
  */
 fun parseArgs(args: Array<String>): Arguments {
 
@@ -94,9 +94,17 @@ fun Application.module() {
     install(Authentication) {
         bearer {
             authenticate { bearerTokenCredential ->
+                println("🔐 Authentication attempt with token: ${bearerTokenCredential.token}")
+                println("🔑 Expected token: ${configuration.apiToken}")
                 when (bearerTokenCredential.token) {
-                    configuration.apiToken -> bearerTokenCredential.token
-                    else -> null
+                    configuration.apiToken -> {
+                        println("✅ Authentication successful")
+                        bearerTokenCredential.token
+                    }
+                    else -> {
+                        println("❌ Authentication failed - token mismatch")
+                        null
+                    }
                 }
             }
         }
@@ -105,14 +113,21 @@ fun Application.module() {
     routing {
         authenticate {
             post("/open-door") {
+                println("🔄 Received POST /open-door request")
+                println("📝 Headers: ${call.request.headers.entries()}")
                 try {
                     val request = call.receive<OpenDoorRequestDto>()
+                    println("📦 Request body: doorphone_id=${request.doorphoneId}, door_number=${request.doorNumber}")
+                    
                     val result = doorOpenerService.openDoor(
                         doorphoneId = request.doorphoneId,
                         doorNumber = request.doorNumber
                     )
+                    println("✅ Door opener result: ${result.status} - ${result.message}")
                     call.respond(message = result)
                 } catch (e: Exception) {
+                    println("❌ Error in /open-door endpoint: ${e.message}")
+                    e.printStackTrace()
                     call.respond(
                         status = HttpStatusCode.InternalServerError,
                         message = DoorResponseDto("error", "Internal server error: ${e.message}")

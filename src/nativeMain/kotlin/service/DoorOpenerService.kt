@@ -1,5 +1,5 @@
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -9,9 +9,9 @@ import kotlinx.serialization.json.Json
 
 class DoorOpenerService(
     private val tokenService: TokenService,
-    private val deviceUuid: String = "fe9883696cbc9018"
+    private val deviceUuid: String,
 ) {
-    private val client = HttpClient(CIO) {
+    private val client = HttpClient(Curl) {
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -21,14 +21,17 @@ class DoorOpenerService(
     }
 
     suspend fun openDoor(doorphoneId: String, doorNumber: String): DoorResponseDto {
-        println("Opening door: doorphone=$doorphoneId, door=$doorNumber")
+        println("🚪 DoorOpenerService: Opening door: doorphone=$doorphoneId, door=$doorNumber")
 
         val token = tokenService.getValidIntercomToken()
         if (token == null) {
+            println("❌ DoorOpenerService: Failed to get valid token")
             return DoorResponseDto("error", "Failed to get valid token")
         }
+        println("🔑 DoorOpenerService: Got valid token, proceeding with door opening")
 
         return try {
+            println("🔗 DoorOpenerService: Making request to https://doorphone.app.evo73.ru/api/doorphone/$doorphoneId/open-door/$doorNumber")
             val response = client.post("https://doorphone.app.evo73.ru/api/doorphone/$doorphoneId/open-door/$doorNumber") {
                 headers {
                     append("Host", "doorphone.app.evo73.ru")
@@ -42,13 +45,14 @@ class DoorOpenerService(
                 setBody("{}")
             }
 
+            println("📡 DoorOpenerService: Received response with status: ${response.status}")
             when (response.status) {
                 HttpStatusCode.OK -> {
-                    println("Door opened successfully")
+                    println("✅ DoorOpenerService: Door opened successfully")
                     DoorResponseDto("success", "Door opened successfully")
                 }
                 HttpStatusCode.Unauthorized -> {
-                    println("Token expired, refreshing and retrying...")
+                    println("🔄 DoorOpenerService: Token expired (401), refreshing and retrying...")
                     // Пытаемся обновить токены и повторить запрос
                     if (tokenService.refreshAuthToken()) {
                         val newToken = tokenService.getValidIntercomToken()
@@ -59,17 +63,20 @@ class DoorOpenerService(
                     DoorResponseDto("error", "Authentication failed")
                 }
                 else -> {
-                    println("Failed to open door: ${response.status}")
+                    println("❌ DoorOpenerService: Failed to open door: ${response.status}")
+                    println("📄 DoorOpenerService: Response body: ${response.bodyAsText()}")
                     DoorResponseDto("error", "Failed to open door: ${response.status}")
                 }
             }
         } catch (e: Exception) {
-            println("Error opening door: ${e.message}")
+            println("❌ DoorOpenerService: Error opening door: ${e.message}")
+            e.printStackTrace()
             DoorResponseDto("error", "Network error: ${e.message}")
         }
     }
 
     private suspend fun retryOpenDoor(doorphoneId: String, doorNumber: String, token: String): DoorResponseDto {
+        println("🔄 DoorOpenerService: Retrying door opening with new token")
         return try {
             val response = client.post("https://doorphone.app.evo73.ru/api/doorphone/$doorphoneId/open-door/$doorNumber") {
                 headers {
@@ -85,14 +92,16 @@ class DoorOpenerService(
             }
 
             if (response.status == HttpStatusCode.OK) {
-                println("Door opened successfully on retry")
+                println("✅ DoorOpenerService: Door opened successfully on retry")
                 DoorResponseDto("success", "Door opened successfully")
             } else {
-                println("Failed to open door on retry: ${response.status}")
+                println("❌ DoorOpenerService: Failed to open door on retry: ${response.status}")
+                println("📄 DoorOpenerService: Retry response body: ${response.bodyAsText()}")
                 DoorResponseDto("error", "Failed to open door on retry: ${response.status}")
             }
         } catch (e: Exception) {
-            println("Error opening door on retry: ${e.message}")
+            println("❌ DoorOpenerService: Error opening door on retry: ${e.message}")
+            e.printStackTrace()
             DoorResponseDto("error", "Network error on retry: ${e.message}")
         }
     }

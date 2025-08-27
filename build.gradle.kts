@@ -42,10 +42,13 @@ kotlin {
             implementation(libs.ktor.server.cio)
             implementation(libs.ktor.server.auth)
             implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.cio)
             implementation(libs.ktor.server.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            implementation("io.ktor:ktor-client-content-negotiation:3.0.1")
+            implementation(libs.ktor.client.content.negotiation)
+        }
+        
+        nativeMain.dependencies {
+            implementation(libs.ktor.client.curl)
         }
 
         nativeTest.dependencies {
