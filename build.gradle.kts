@@ -14,6 +14,17 @@ repositories {
 }
 
 kotlin {
+    jvm {
+        compilations.all {
+            compilerOptions.configure {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            }
+        }
+        mainRun {
+            mainClass.set("ApplicationKt")
+        }
+    }
+
     macosArm64 {
         binaries.executable {
             entryPoint = "main"
@@ -45,11 +56,22 @@ kotlin {
             implementation(libs.ktor.server.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.cio)
+        }
+        
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.cio)
+            implementation(libs.logback.classic)
         }
         
         nativeMain.dependencies {
             implementation(libs.ktor.client.curl)
             implementation(libs.ktor.client.cio)
+        }
+
+        jvmTest.dependencies {
+            implementation(kotlin("test-junit"))
+            implementation(libs.ktor.server.test.host)
         }
 
         nativeTest.dependencies {
@@ -99,4 +121,20 @@ tasks.register("linkLinuxBinaries") {
             println("Executable not found: $linuxX64Executable")
         }
     }
+}
+
+// Task for creating an executable JAR for JVM target
+tasks.register<Jar>("jvmFatJar") {
+    group = "build"
+    description = "Creates fat JAR for JVM target"
+    archiveClassifier.set("fat")
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    
+    manifest {
+        attributes["Main-Class"] = "ApplicationKt"
+    }
+    
+    from(kotlin.jvm().compilations.getByName("main").output)
+    from(kotlin.jvm().compilations.getByName("main").runtimeDependencyFiles.map { if (it.isDirectory) it else zipTree(it) })
 }

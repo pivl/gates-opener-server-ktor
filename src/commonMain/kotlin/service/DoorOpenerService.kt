@@ -1,25 +1,13 @@
 import io.ktor.client.*
-import io.ktor.client.engine.curl.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.json.Json
 
 class DoorOpenerService(
+    private val httpClient: HttpClient,
     private val tokenService: TokenService,
     private val deviceUuid: String,
 ) {
-    private val client = HttpClient(Curl) {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
-        }
-    }
-
     suspend fun openDoor(doorphoneId: String, doorNumber: String): DoorResponseDto {
         println("🚪 DoorOpenerService: Opening door: doorphone=$doorphoneId, door=$doorNumber")
 
@@ -32,7 +20,7 @@ class DoorOpenerService(
 
         return try {
             println("🔗 DoorOpenerService: Making request to https://doorphone.app.evo73.ru/api/doorphone/$doorphoneId/open-door/$doorNumber")
-            val response = client.post("https://doorphone.app.evo73.ru/api/doorphone/$doorphoneId/open-door/$doorNumber") {
+            val response = httpClient.post("https://doorphone.app.evo73.ru/api/doorphone/$doorphoneId/open-door/$doorNumber") {
                 headers {
                     append("Host", "doorphone.app.evo73.ru")
                     append("Connection", "keep-alive")
@@ -78,7 +66,7 @@ class DoorOpenerService(
     private suspend fun retryOpenDoor(doorphoneId: String, doorNumber: String, token: String): DoorResponseDto {
         println("🔄 DoorOpenerService: Retrying door opening with new token")
         return try {
-            val response = client.post("https://doorphone.app.evo73.ru/api/doorphone/$doorphoneId/open-door/$doorNumber") {
+            val response = httpClient.post("https://doorphone.app.evo73.ru/api/doorphone/$doorphoneId/open-door/$doorNumber") {
                 headers {
                     append("Host", "doorphone.app.evo73.ru")
                     append("Connection", "keep-alive")
@@ -107,6 +95,6 @@ class DoorOpenerService(
     }
 
     suspend fun close() {
-        client.close()
+        httpClient.close()
     }
 }

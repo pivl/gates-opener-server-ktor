@@ -1,6 +1,5 @@
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -11,18 +10,10 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
 class TokenService(
+    private val httpClient: HttpClient,
     private val initialToken: String,
     private val deviceUuid: String = "fe9883696cbc9018"
 ) {
-    private val client = HttpClient(Curl) {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
-        }
-    }
-
     private val mutex = Mutex()
     private var authToken: String = initialToken
     private var mainToken: String? = null
@@ -33,7 +24,7 @@ class TokenService(
         return try {
             println("🔄 TokenService: Refreshing auth token...")
             println("🔗 TokenService: Making request to https://id.evo73.ru/auth/refresh")
-            val response = client.post("https://id.evo73.ru/auth/refresh") {
+            val response = httpClient.post("https://id.evo73.ru/auth/refresh") {
                 headers {
                     append("X-Device-UUID", deviceUuid)
                     append("Authorization", "Bearer $authToken")
@@ -73,7 +64,7 @@ class TokenService(
         return try {
             println("🔄 TokenService: Getting main token...")
             println("🔗 TokenService: Making request to https://api.app.evo73.ru/api/v2/single-auth/main-token")
-            val response = client.post("https://api.app.evo73.ru/api/v2/single-auth/main-token") {
+            val response = httpClient.post("https://api.app.evo73.ru/api/v2/single-auth/main-token") {
                 headers {
                     append("X-Device-UUID", deviceUuid)
                     append("Accept", "application/json, text/plain, */*")
@@ -119,7 +110,7 @@ class TokenService(
         return try {
             println("🔄 TokenService: Getting intercom token...")
             println("🔗 TokenService: Making request to https://api.app.evo73.ru/api/v1/authIntercom")
-            val response = client.post("https://api.app.evo73.ru/api/v1/authIntercom") {
+            val response = httpClient.post("https://api.app.evo73.ru/api/v1/authIntercom") {
                 headers {
                     append("X-Device-UUID", deviceUuid)
                     append("Authorization", "Bearer $currentMainToken")
@@ -168,6 +159,6 @@ class TokenService(
     }
 
     suspend fun close() {
-        client.close()
+        httpClient.close()
     }
 }
