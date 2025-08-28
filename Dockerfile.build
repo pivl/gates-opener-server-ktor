@@ -1,3 +1,4 @@
+# Эта сборка не работает (т.к. не получается слинковать с libcurl4 на платформе arm64 а kotlin-native-prebuilt-linux есть только для x86_64).
 # Dockerfile для сборки Linux x86_64 executable через QEMU эмуляцию
 FROM --platform=linux/amd64 ubuntu:22.04
 

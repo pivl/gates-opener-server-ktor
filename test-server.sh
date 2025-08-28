@@ -3,7 +3,7 @@
 # Скрипт для быстрого тестирования сервера
 
 API_TOKEN="03cba5ea"
-INITIAL_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwaG9uZSI6Ijc5OTM3NTQxNDIzIiwiZGV2aWNlIjoiMTE5OTU2NzkxODc2NzE5NzIyNDEiLCJjbGllbnRzIjp7IjEyMzQ1Ijo3ODM5NiwiMjM0NTYiOjc4Mzk1LCIzNDU2NyI6MTExNzkyfSwianRpIjoiZ05BdE5tV05RMzBmZEVqNGNvdzhveDJuS0JzWDRhIiwibmJmIjoxNzU2MTQzNjYzLCJpYXQiOjE3NTYxNDM2NjMsImV4cCI6MTc1NjE0NzI2M30.O1paIqMMMD_GXLtioBoIjtMXCqh9cKIz2F9CXFcRxkg"
+INITIAL_TOKEN="PASTE INITIAL TOKEN HERE"
 DEVICE_UUID="fe9883696cbcffff"
 
 echo "🚀 Запуск Gates Opener Server..."

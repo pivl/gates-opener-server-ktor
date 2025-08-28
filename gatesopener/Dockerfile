@@ -2,8 +2,15 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/aarch64-base-ubuntu:20.04
 FROM $BUILD_FROM
 
-ARG BUILD_ARCH=aarch64
+# Install Java runtime for JAR execution
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        openjdk-17-jre-headless \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy root filesystem
 COPY rootfs /
-COPY /bin/gates-opener-server-ktor-${BUILD_ARCH} /usr/bin/gates_opener
+
+# Copy JAR file
+COPY /bin/gates-opener-server-ktor.jar /usr/bin/gates_opener.jar

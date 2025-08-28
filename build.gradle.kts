@@ -138,3 +138,25 @@ tasks.register<Jar>("jvmFatJar") {
     from(kotlin.jvm().compilations.getByName("main").output)
     from(kotlin.jvm().compilations.getByName("main").runtimeDependencyFiles.map { if (it.isDirectory) it else zipTree(it) })
 }
+
+// Task for copying JAR to Home Assistant addon directory
+tasks.register<Copy>("copyJarToAddon") {
+    group = "build"
+    description = "Copies fat JAR to gatesopener/bin directory for Home Assistant addon"
+    
+    dependsOn("jvmFatJar")
+    
+    from("build/libs")
+    into("gatesopener/bin")
+    include("*-fat.jar")
+    rename { "gates-opener-server-ktor.jar" }
+    
+    doLast {
+        println("JAR copied to gatesopener/bin/gates-opener-server-ktor.jar")
+    }
+}
+
+// Make build depend on copying JAR to addon
+tasks.named("build") {
+    dependsOn("copyJarToAddon")
+}

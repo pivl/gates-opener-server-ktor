@@ -12,7 +12,7 @@
 
 - `--api-token` - токен для авторизации внешних клиентов (обязательный)
 - `--initial-token` - первичный токен для получения токенов системы EVO73 (обязательный) 
-- `--device-uuid` - UUID устройства (опциональный, по умолчанию: fe9883696cbc9018)
+- `--device-uuid` - UUID устройства (опциональный, по умолчанию: fe9883696cbcffff)
 
 ### Пример запуска
 
@@ -20,7 +20,7 @@
 ./gates-opener-server-ktor \
   --api-token "my-secure-api-token" \
   --initial-token "initial-jwt-token" \
-  --device-uuid "fe9883696cbc9018"
+  --device-uuid "fe9883696cbcffff"
 ```
 
 ## API Endpoints
