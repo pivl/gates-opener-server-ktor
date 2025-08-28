@@ -27,14 +27,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Создаем директорию для результатов если её нет
-mkdir -p "$(pwd)/build"
+
 
 # Запускаем сборку и копируем результат
-echo "🔨 Запускаем сборку x86_64 через QEMU эмуляцию..."
+echo "🔨 Запускаем сборку всех Linux платформ через QEMU эмуляцию..."
 docker run --rm \
     --platform linux/amd64 \
-    -v "$(pwd)/build:/app/build" \
+    -v "$(pwd)/gatesopener:/app/gatesopener" \
     gates-opener-builder-x64
 
 if [ $? -ne 0 ]; then
@@ -43,16 +42,26 @@ if [ $? -ne 0 ]; then
 fi
 
 # Проверяем результат
-if [ -f "build/bin/linuxX64/releaseExecutable/gates-opener-server-ktor.kexe" ]; then
+if [ -f "gatesopener/bin/gates-opener-server-ktor-amd64" ] || [ -f "gatesopener/bin/gates-opener-server-ktor-aarch64" ]; then
     echo "✅ Сборка завершена успешно!"
-    echo "📁 Linux x86_64 executable: build/bin/linuxX64/releaseExecutable/gates-opener-server-ktor.kexe"
-    echo "📊 Размер файла:"
-    ls -lh build/bin/linuxX64/releaseExecutable/gates-opener-server-ktor.kexe
-    echo "🔍 Архитектура:"
-    file build/bin/linuxX64/releaseExecutable/gates-opener-server-ktor.kexe
+    echo "📁 Результаты сборки в gatesopener/bin/:"
+    if [ -f "gatesopener/bin/gates-opener-server-ktor-amd64" ]; then
+        echo "✅ Linux x86_64 executable: gatesopener/bin/gates-opener-server-ktor-amd64"
+        echo "📊 Размер файла (x86_64):"
+        ls -lh gatesopener/bin/gates-opener-server-ktor-amd64
+        echo "🔍 Архитектура (x86_64):"
+        file gatesopener/bin/gates-opener-server-ktor-amd64
+    fi
+    if [ -f "gatesopener/bin/gates-opener-server-ktor-aarch64" ]; then
+        echo "✅ Linux ARM64 executable: gatesopener/bin/gates-opener-server-ktor-aarch64"
+        echo "📊 Размер файла (ARM64):"
+        ls -lh gatesopener/bin/gates-opener-server-ktor-aarch64
+        echo "🔍 Архитектура (ARM64):"
+        file gatesopener/bin/gates-opener-server-ktor-aarch64
+    fi
 else
     echo "❌ Сборка не удалась - executable не найден"
-    echo "📁 Содержимое директории build:"
-    find build -name "*.kexe" -ls 2>/dev/null || echo "Файлы *.kexe не найдены"
+    echo "📁 Содержимое директории gatesopener:"
+    find gatesopener -name "gates-opener-server-ktor-*" -ls 2>/dev/null || echo "Executable файлы не найдены"
     exit 1
 fi

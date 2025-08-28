@@ -7,10 +7,11 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     git \
-    build-essential \
-    libcurl4-openssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+    build-essential
 
+RUN apt-get install -y \
+    libcurl4-gnutls-dev \
+    gcc-aarch64-linux-gnu
 # Устанавливаем JDK
 RUN apt-get update && apt-get install -y openjdk-17-jdk
 
@@ -25,15 +26,17 @@ RUN wget https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-na
 
 ENV PATH="/opt/kotlin-native/kotlin-native-prebuilt-linux-x86_64-2.0.21/bin:${PATH}"
 
+RUN dpkg --add-architecture arm64
+RUN apt-get update; exit 0
+RUN apt-get install -y \
+    libcurl4-gnutls-dev
+
 # Рабочая директория для проекта
 WORKDIR /app
 
 # Сначала копируем только файлы конфигурации для кеширования зависимостей
 COPY gradle/ gradle/
 COPY gradlew gradlew.bat gradle.properties settings.gradle.kts build.gradle.kts ./
-
-# Переименовываем build-docker.gradle.kts в build.gradle.kts для сборки
-# RUN mv build-docker.gradle.kts build.gradle.kts
 
 # Даем права на выполнение градла
 RUN chmod +x ./gradlew
@@ -45,4 +48,4 @@ RUN ./gradlew dependencies --no-daemon -Dkotlin.native.ignoreDisabledTargets=tru
 COPY src/ src/
 
 # Собираем проект для Linux x86_64
-CMD ["./gradlew", "linkReleaseExecutableLinuxX64", "--no-daemon", "-Dkotlin.native.ignoreDisabledTargets=true"]
+CMD ["./gradlew", "linkLinuxBinaries", "--no-daemon", "-Dkotlin.native.ignoreDisabledTargets=true"]

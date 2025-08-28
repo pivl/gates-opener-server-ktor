@@ -49,6 +49,7 @@ kotlin {
         
         nativeMain.dependencies {
             implementation(libs.ktor.client.curl)
+            implementation(libs.ktor.client.cio)
         }
 
         nativeTest.dependencies {
