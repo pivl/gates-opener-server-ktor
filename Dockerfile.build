@@ -1,0 +1,52 @@
+# Эта сборка не работает (т.к. не получается слинковать с libcurl4 на платформе arm64 а kotlin-native-prebuilt-linux есть только для x86_64).
+# Dockerfile для сборки Linux x86_64 executable через QEMU эмуляцию
+FROM --platform=linux/amd64 ubuntu:22.04
+
+# Устанавливаем необходимые пакеты
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    unzip \
+    git \
+    build-essential
+
+RUN apt-get install -y \
+    libcurl4-gnutls-dev \
+    gcc-aarch64-linux-gnu
+# Устанавливаем JDK
+RUN apt-get update && apt-get install -y openjdk-17-jdk
+
+# Устанавливаем Kotlin Native toolchain для x86_64
+RUN mkdir -p /opt/kotlin-native
+WORKDIR /opt/kotlin-native
+
+# Скачиваем и распаковываем Kotlin Native x86_64
+RUN wget https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-native-prebuilt-linux-x86_64-2.0.21.tar.gz \
+    && tar -xzf kotlin-native-prebuilt-linux-x86_64-2.0.21.tar.gz \
+    && rm kotlin-native-prebuilt-linux-x86_64-2.0.21.tar.gz
+
+ENV PATH="/opt/kotlin-native/kotlin-native-prebuilt-linux-x86_64-2.0.21/bin:${PATH}"
+
+RUN dpkg --add-architecture arm64
+RUN apt-get update; exit 0
+RUN apt-get install -y \
+    libcurl4-gnutls-dev
+
+# Рабочая директория для проекта
+WORKDIR /app
+
+# Сначала копируем только файлы конфигурации для кеширования зависимостей
+COPY gradle/ gradle/
+COPY gradlew gradlew.bat gradle.properties settings.gradle.kts build.gradle.kts ./
+
+# Даем права на выполнение градла
+RUN chmod +x ./gradlew
+
+# Загружаем зависимости для x86_64 сборки (это будет закешировано Docker)
+RUN ./gradlew dependencies --no-daemon -Dkotlin.native.ignoreDisabledTargets=true
+
+# Теперь копируем исходный код
+COPY src/ src/
+
+# Собираем проект для Linux x86_64
+CMD ["./gradlew", "linkLinuxBinaries", "--no-daemon", "-Dkotlin.native.ignoreDisabledTargets=true"]

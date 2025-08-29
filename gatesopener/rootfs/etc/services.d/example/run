@@ -1,21 +1,30 @@
 #!/usr/bin/with-contenv bashio
 # ==============================================================================
-# Start the example service
+# Start the gates opener service (JAR version)
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
-# Add your code here
-
 # Declare variables
-declare base_url
-declare token
-declare key
+declare api_token
+declare initial_token
+declare device_uuid
 
-base_url=$(bashio::config 'base_url')
-token=$(bashio::config 'token')
-key=$(bashio::config 'key')
+# Read configuration from Home Assistant options
+api_token=$(bashio::config 'api_token')
+initial_token=$(bashio::config 'initial_token') 
+device_uuid=$(bashio::config 'device_uuid')
 
-bashio::log.info "Starting gates opener server with ${base_url}"
+# Set defaults if not provided
+api_token=${api_token:-"default-api-token"}
+initial_token=${initial_token:-"default-initial-token"}
+device_uuid=${device_uuid:-"fe9883696cbcffff"}
 
-## Run your program
-/usr/bin/gates_opener --token "${token}" --base-url "${base_url}" --internal-key "${key}"
+bashio::log.info "Starting gates opener server (JAR version)"
+bashio::log.info "API Token: ${api_token}"
+bashio::log.info "Device UUID: ${device_uuid}"
+
+## Run JAR with Java
+exec java -jar /usr/bin/gates_opener.jar \
+    --api-token "${api_token}" \
+    --initial-token "${initial_token}" \
+    --device-uuid "${device_uuid}"

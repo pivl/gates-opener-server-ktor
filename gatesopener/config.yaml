@@ -1,21 +1,21 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
-name: Gates Opener Proxy
-version: "1.0.4"
+name: Gates Opener Proxy (JAR)
+version: "2.0.0"
 slug: gatesopener
-description: Gates Opener Proxy
-url: "https://github.com/pivl/gates-opener-server-ktor/tree/main/ha-addon"
+description: Gates Opener Proxy Server - JAR version with JVM
+url: "https://github.com/pivl/gates-opener-server-ktor"
 arch:
   - aarch64
   - amd64
 init: false
 options:
-  key: ""
-  token: "token"
-  base_url: "http://somehost/opener"
+  api_token: "default-api-token"
+  initial_token: "default-initial-token"
+  device_uuid: "fe9883696cbcffff"
 schema:
-  key: "str"
-  token: "str"
-  base_url: "str"
+  api_token: "str"
+  initial_token: "str"
+  device_uuid: "str?"
 ports:
   8080/tcp: 8080
 #image: "ghcr.io/home-assistant/{arch}-addon-example"
